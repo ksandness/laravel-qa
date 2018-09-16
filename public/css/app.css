@@ -10508,7 +10508,11 @@ a.text-dark:focus {
   color: #fff;
 }
 
-.view {
+.counters .view {
   margin-top: 10px;
+}
+
+form.form-delete {
+  display: inline;
 }
 
