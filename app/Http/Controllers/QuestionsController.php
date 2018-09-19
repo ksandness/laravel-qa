@@ -1,10 +1,17 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Question;
 use Illuminate\Http\Request;
 use App\Http\Requests\AskQuestionRequest;
+
 class QuestionsController extends Controller
 {
+    public function __construct() {
+        $this->middleware('auth', ['except' => ['index', 'show']]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -13,9 +20,10 @@ class QuestionsController extends Controller
     public function index()
     {
         $questions = Question::with('user')->latest()->paginate(10);
-        return view('questions.index', compact('questions'));
 
+        return view('questions.index', compact('questions'));
     }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -27,6 +35,7 @@ class QuestionsController extends Controller
 
         return view('questions.create', compact('question'));
     }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -39,6 +48,7 @@ class QuestionsController extends Controller
 
         return redirect()->route('questions.index')->with('success', "Your question has been submitted");
     }
+
     /**
      * Display the specified resource.
      *
@@ -51,6 +61,7 @@ class QuestionsController extends Controller
 
         return view('questions.show', compact('question'));
     }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -59,12 +70,10 @@ class QuestionsController extends Controller
      */
     public function edit(Question $question)
     {
-        if (\Gate::denies('update-question', $question)) {
-            abort(403, "Access denied");
-        }
+        $this->authorize("update", $question);
         return view("questions.edit", compact('question'));
-
     }
+
     /**
      * Update the specified resource in storage.
      *
@@ -72,14 +81,15 @@ class QuestionsController extends Controller
      * @param  \App\Question  $question
      * @return \Illuminate\Http\Response
      */
-     public function update(AskQuestionRequest $request, Question $question)
-     {
-         if (\Gate::denies('update-question', $question)) {
-             abort(403, "Access denied");
-         }
-         $question->update($request->only('title', 'body'));
-         return redirect('/questions')->with('success', "Your question has been updated.");
-     }
+    public function update(AskQuestionRequest $request, Question $question)
+    {
+        $this->authorize("update", $question);
+
+        $question->update($request->only('title', 'body'));
+
+        return redirect('/questions')->with('success', "Your question has been updated.");
+    }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -88,9 +98,8 @@ class QuestionsController extends Controller
      */
     public function destroy(Question $question)
     {
-        if (\Gate::denies('delete-question', $question)) {
-            abort(403, "Access denied");
-        }
+        $this->authorize("delete", $question);
+
         $question->delete();
 
         return redirect('/questions')->with('success', "Your question has been deleted.");
